@@ -2,8 +2,8 @@
 
 /*Setup everything that doesn't require data first*/
 // svg container
-const height = 600;
-const width = 1000;
+const svgHeight = window.innerHeight;
+const svgWidth = window.innerWidth;
 let chosenXAxis = 'age';
 
 // margins
@@ -15,8 +15,9 @@ const margin = {
 };
 
 // chart area minus margins
-const chartHeight = height - margin.top - margin.bottom;
-const chartWidth = width - margin.left - margin.right;
+const chartHeight = svgHeight - margin.top - margin.bottom;
+console.log(chartHeight);
+const chartWidth = svgWidth - margin.left - margin.right;
 
 // Create a color map for challenge
 // In a production application typically is generated using a color scale
@@ -24,8 +25,8 @@ const color_map = {'setosa': 'green', 'virginica':'red', 'versicolor':'blue'}
 
 // create svg container
 const svg = d3.select('#chart').append('svg')
-      .attr('height', height)
-      .attr('width', width)
+      .attr('height', svgHeight )
+      .attr('width', svgWidth)
     .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`)
       .attr('id', 'bar_chart');
@@ -33,7 +34,7 @@ const svg = d3.select('#chart').append('svg')
 
 // shift everything over by the margins
 const labelsGroup = svg.append('g')
-    .attr('transform', `translate(${width / 2}, ${chartHeight+20})`);
+    .attr('transform', `translate(${svgWidth/2 }, ${chartHeight + 20})`);
 
 labelsGroup.append('text')
     .attr('x', 0)
@@ -70,7 +71,7 @@ function xScale_update(sales_data, chosenXAxis){
         .domain([0, d3.max(sales_data, d => d[chosenXAxis])])
         .range([0, chartWidth]);
 
-  return xLinearScale
+  return xLinearScale;
   }
 
 function renderAxes(newXScale, xAxis_g) {
@@ -110,12 +111,13 @@ d3.csv('../assets/data/data.csv')
 
         // Set Scales
         const yScale = d3.scaleLinear()
-            .domain([0, d3.max(data_data.map(d =>d['sepal_length']))])
+            .domain([0, d3.max(data_data.map(d => parseFloat(d['poverty'])))])
+ 
             .range([chartHeight, 0]);
-
+console.log(data_data.map(d =>d['poverty']));
         const xScale = d3.scaleLinear()
-            .domain([0, d3.max(data_data, d => d[chosenXAxis])])
-            .range([0, chartWidth])
+            .domain([0, d3.max(data_data, d => parseFloat(d[chosenXAxis]))])
+            .range([0, chartWidth]);
 
         // Create axes for Svg
         const yAxis_func = d3.axisLeft(yScale);
@@ -138,9 +140,14 @@ d3.csv('../assets/data/data.csv')
                 .enter()
             .append('circle')
             .attr('cx', d => xScale(d['age']))
-            .attr('cy', d => yScale(d['poverty']))
+            .attr('value', 'poverty')
+            .attr('cy', d => yScale(parseFloat(d['poverty'])))  
             .attr('r', 10)
-            .attr('fill', d => color_map[d['state']]);
+            .attr('fill', d => color_map[d['state']])
+           
+            var gdots =  svg.selectAll("circle")
+            .data(data)
+            .enter().text(d => d['abbr']);
 // console.log(poverty);
         labelsGroup.selectAll('text')
             .on('click', function() {
